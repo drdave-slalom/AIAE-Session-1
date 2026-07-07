@@ -63,4 +63,27 @@ app.post('/api/items', (req, res) => {
   }
 });
 
+app.delete('/api/items/:id', (req, res) => {
+  try {
+    const itemId = Number.parseInt(req.params.id, 10);
+
+    if (!Number.isInteger(itemId) || itemId <= 0) {
+      return res.status(400).json({ error: 'Valid item id is required' });
+    }
+
+    const existingItem = db.prepare('SELECT * FROM items WHERE id = ?').get(itemId);
+
+    if (!existingItem) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    db.prepare('DELETE FROM items WHERE id = ?').run(itemId);
+
+    res.json(existingItem);
+  } catch (error) {
+    console.error('Error deleting item:', error);
+    res.status(500).json({ error: 'Failed to delete item' });
+  }
+});
+
 module.exports = { app, db, insertStmt };
